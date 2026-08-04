@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.vite/
+.vscode/
+src-tauri/target/
+src-tauri/gen/
+*.db
+muziso_startup.log
+gstreamer_debug.log
+gstreamer/
+src-tauri/gstreamer/*
+!src-tauri/gstreamer/bin/
+!src-tauri/gstreamer/bin/dummy.txt
+!src-tauri/gstreamer/dummy.txt
+!src-tauri/gstreamer/.gitkeep

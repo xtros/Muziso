@@ -1,0 +1,106 @@
+name: CI/CD Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            args: ''
+          - platform: 'macos-latest'
+            args: ''
+          - platform: 'ubuntu-22.04'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Windows dependencies
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          choco install gstreamer-devel -y --no-progress
+          choco install pkgconfiglite -y --no-progress
+          $pc = (Get-ChildItem -Path C:\ -Filter "glib-2.0.pc" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
+          if ($pc) {
+            $pcDir = $pc.DirectoryName
+            $gstRoot = $pcDir | Split-Path -Parent | Split-Path -Parent
+            echo "PKG_CONFIG_PATH=$pcDir" >> $env:GITHUB_ENV
+            echo "GSTREAMER_1_0_ROOT_X86_64=$gstRoot" >> $env:GITHUB_ENV
+            echo "$gstRoot\bin" >> $env:GITHUB_PATH
+          }
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update -y || true
+          sudo apt-get install -y --fix-missing \
+            pkg-config \
+            libasound2-dev \
+            libunwind-dev \
+            libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev \
+            libgstreamer-plugins-good1.0-dev \
+            libgstreamer-plugins-bad1.0-dev \
+            gstreamer1.0-plugins-ugly \
+            gstreamer1.0-tools \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Install macOS dependencies
+        if: matrix.platform == 'macos-latest'
+        run: |
+          brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly pkg-config
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri App & Publish Release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Muziso v__VERSION__'
+          releaseBody: 'Muziso cross-platform desktop release for Windows, macOS, and Linux.'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
