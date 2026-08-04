@@ -71,6 +71,9 @@ npm run tauri build
 > [!NOTE]
 > **Cross-Compilation Note**: Tauri compiles native binaries, meaning you must build the project on the target operating system (e.g., compile on Windows for `.exe`/`.msi`, macOS for `.dmg`/`.app`, and Linux for `.deb`). You can also configure a GitHub Actions workflow to build and release binaries for all three platforms automatically upon pushes.
 
+> [!NOTE]
+> **Windows SmartScreen Prompt**: As an independent open-source desktop app without a commercial code-signing certificate, Windows Defender SmartScreen may display an "Unknown Publisher" prompt when launching the `.exe` installer for the first time. To proceed: Click **"More info"** $\rightarrow$ **"Run anyway"**.
+
 ---
 
 ## 📂 Architecture Details
