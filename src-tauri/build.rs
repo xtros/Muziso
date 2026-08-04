@@ -33,18 +33,15 @@ fn main() {
                     if gstpython.exists() {
                         let _ = std::fs::remove_file(gstpython);
                     }
-                    let critical_dlls = [
-                        "gobject-2.0-0.dll",
-                        "glib-2.0-0.dll",
-                        "ffi-7.dll",
-                        "intl-8.dll",
-                        "pcre2-8-0.dll",
-                    ];
-                    for dll in &critical_dlls {
-                        let src = gst_bin.join(dll);
-                        let dst = target_dir.join(dll);
-                        if src.exists() {
-                            let _ = std::fs::copy(&src, &dst);
+                    if let Ok(entries) = std::fs::read_dir(gst_bin) {
+                        for entry in entries.flatten() {
+                            if let Some(name) = entry.file_name().to_str() {
+                                if name.ends_with(".dll") {
+                                    let src = gst_bin.join(name);
+                                    let dst = target_dir.join(name);
+                                    let _ = std::fs::copy(&src, &dst);
+                                }
+                            }
                         }
                     }
                 }
