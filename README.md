@@ -4,105 +4,125 @@
   <img src="https://i.postimg.cc/yYvXBWK5/Muziso.png" alt="Muziso Showcase" width="100%" />
 </p>
 
-Muziso is a premium, dark-themed, glassmorphic desktop music player designed for modern listeners. Powered by a hybrid engine of **React (TypeScript)** and **Rust (Tauri)**, Muziso integrates local library playback with dynamic web streaming (YouTube, SoundCloud) and local caching capabilities.
+<p align="center">
+  <a href="https://github.com/xtros/Muziso/releases"><img src="https://img.shields.io/github/v/release/xtros/Muziso?color=ccff00&label=Release&style=for-the-badge" alt="Latest Release" /></a>
+  <a href="https://github.com/xtros/Muziso/blob/main/LICENSE"><img src="https://img.shields.io/github/license/xtros/Muziso?color=ccff00&label=License&style=for-the-badge" alt="License" /></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-181825?style=for-the-badge&logo=github" alt="Platforms" />
+  <img src="https://img.shields.io/badge/Tauri-v2-FFC107?style=for-the-badge&logo=tauri&logoColor=black" alt="Tauri v2" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
+</p>
+
+<p align="center">
+  <b>Muziso</b> is a premium, dark-themed, glassmorphic desktop music player built for modern listeners. Powered by a high-performance <b>React (TypeScript)</b> + <b>Rust (Tauri v2)</b> engine, Muziso seamlessly combines local library playback, high-fidelity web audio resolution, and offline caching.
+</p>
 
 ---
 
 ## 🌟 Key Features
 
-*   **Hybrid Media Playback**: Play local audio formats (`.mp3`, `.m4a`, `.wav`, `.opus`) alongside online streams seamlessly.
-*   **IP-Bound Streaming**: Dynamically extracts high-quality audio streams using a local, platform-independent `yt-dlp` sidecar engine.
-*   **Offline Downloads / Likes**: Download and save liked tracks locally for immediate offline playback.
-*   **Stable Shuffling & Queue Engine**: Shuffled play queues with smart un-shuffling state tracking and back-navigation (repopulating historical shuffled paths).
-*   **Developer Announcements**: An integrated updates dropdown linked to remote notification feeds with read/unread tracking.
-*   **Custom Glassmorphic UI**: High-fidelity dark mode with neon-yellow branding (`#ccff00`), Framer Motion transitions, custom modal overlays, and full scroll-to-top routing resets.
-*   **Native Isolation**: Volume control dragging is decoupled from parent swipe-to-close sheets.
+- 🎧 **Hybrid Audio Engine**: Play local music collections (`.mp3`, `.m4a`, `.wav`, `.opus`, `.flac`) alongside dynamic online streams.
+- ⚡ **IP-Bound Stream Resolution**: Dynamically extracts high-quality audio streams using a local, platform-decoupled `yt-dlp` sidecar engine.
+- 📥 **Offline Download & Library Management**: Save tracks locally for immediate offline playback with custom metadata and artwork indexing.
+- 🔀 **Smart Queue & Shuffle Pipeline**: Shuffled play queue with intelligent un-shuffle state tracking and deterministic historical navigation.
+- 📣 **Developer Announcement Feed**: In-app announcements feed with read/unread tracking and remote notification sync.
+- 🎨 **Glassmorphic Cyber-Minimal UI**: High-fidelity dark mode with signature neon branding (`#ccff00`), smooth Framer Motion transitions, custom modal overlays, and responsive routing resets.
+- 🎚️ **Decoupled Controls**: Native event isolation preventing gesture overlap between drag sliders, volume controllers, and swipe overlays.
 
 ---
 
-## 🛠️ Technology Stack
+## ⚡ Download & Installation
 
-*   **Frontend**: React (TypeScript), Framer Motion, Lucide Icons, Vanilla CSS
-*   **Desktop Wrapper**: Tauri (v2)
-*   **Audio Pipeline**: GStreamer (wrapped in Rust FFI bindings)
-*   **Database**: SQLite (`rusqlite`) for local tracking, playlist schemas, and library logs
-*   **Stream Resolution**: `yt-dlp` (packaged as a Tauri resource sidecar)
+Visit the **[Muziso Releases Page](https://github.com/xtros/Muziso/releases)** to grab the latest standalone installer for your system:
 
----
-
-## 🚀 Setup & Installation
-
-### Prerequisites
-
-1.  **Node.js**: Install Node.js (v18+ recommended).
-2.  **Rust Toolchain**: Install rustup from [rustup.rs](https://rustup.rs).
-3.  **GStreamer**: Ensure GStreamer is installed on your system.
-    *   **Windows**: Download and install the MSVC 64-bit GStreamer runtime and development packages from the [GStreamer Website](https://gstreamer.freedesktop.org/).
-    *   **macOS**: Install via Homebrew:
-        ```bash
-        brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly
-        ```
-    *   **Linux (Ubuntu/Debian)**: Install via APT:
-        ```bash
-        sudo apt install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-ugly
-        ```
-
-### Development Mode
-
-1.  Clone the repository and install npm packages:
-    ```bash
-    npm install
-    ```
-2.  Launch the development server:
-    ```bash
-    npm run tauri dev
-    ```
-
-### Production Build
-
-To compile release bundles and target operating system installer files:
-
-```bash
-npm run tauri build
-```
-
-*The build pipeline will output native installer setups (`.exe`/`.msi` on Windows, `.dmg` on macOS, and `.deb` on Linux) inside `src-tauri/target/release/bundle/`.*
+| Platform | Package Format | Download Link |
+| :--- | :--- | :--- |
+| **Windows** | `.exe` / `.msi` / `.zip` | [Latest Windows Release](https://github.com/xtros/Muziso/releases/latest) |
+| **macOS** | `.dmg` / `.app` | [Latest macOS Release](https://github.com/xtros/Muziso/releases/latest) |
+| **Linux** | `.deb` / `.AppImage` | [Latest Linux Release](https://github.com/xtros/Muziso/releases/latest) |
 
 > [!NOTE]
-> **Cross-Compilation Note**: Tauri compiles native binaries, meaning you must build the project on the target operating system (e.g., compile on Windows for `.exe`/`.msi`, macOS for `.dmg`/`.app`, and Linux for `.deb`). You can also configure a GitHub Actions workflow to build and release binaries for all three platforms automatically upon pushes.
-
-> [!NOTE]
-> **Windows SmartScreen Prompt**: As an independent open-source desktop app without a commercial code-signing certificate, Windows Defender SmartScreen may display an "Unknown Publisher" prompt when launching the `.exe` installer for the first time. To proceed: Click **"More info"** $\rightarrow$ **"Run anyway"**.
+> **Windows SmartScreen Notice**: Because Muziso is an open-source binary without a paid commercial certificate, Windows Defender SmartScreen may display an *"Unknown Publisher"* prompt on first launch. Click **"More info"** &rarr; **"Run anyway"** to continue.
 
 ---
 
-## 📂 Architecture Details
+## 🛠️ Tech Stack & Architecture
 
-### GStreamer FFI Initialization
-The application initializes GStreamer directly on startup. On Windows, it automatically injects paths to the bundled/portable GStreamer binaries (`gstreamer/bin` / `plugins`) directly into the registry and environment paths. On macOS and Linux, GStreamer loads from system packages.
+- **Frontend Core**: React 18, TypeScript, Framer Motion, Lucide Icons, Vanilla CSS Design System
+- **Desktop Architecture**: Tauri v2 (Rust)
+- **Audio Pipeline**: GStreamer (Native Rust FFI bindings)
+- **Local Persistence**: SQLite (`rusqlite`) for library indexing, play counts, and queue state
+- **Stream Engine**: `yt-dlp` packaged as a platform-decoupled sidecar binary
 
-### Platform-Independent `yt-dlp` Sidecar
-To support streaming audio on Windows, macOS, and Linux, the resolver detects the host platform type and automatically appends the correct binary extensions (`yt-dlp.exe` vs `yt-dlp`), executing in the background with `CREATE_NO_WINDOW` flags on Windows to hide shell popups.
+---
 
-### Security Configurations
-Tauri's `assetProtocol` is configured to register scopes for local disk structures (`$HOME` and `$APPDATA`), allowing the client webview to load and play locally cached image avatars and downloaded music files directly.
+## 🚀 Development Setup
+
+### 1. Prerequisites
+
+Make sure you have installed the required build dependencies:
+
+- **Node.js**: v18.0 or higher
+- **Rust Toolchain**: Install via [rustup.rs](https://rustup.rs)
+- **GStreamer Engine**:
+  - **Windows**: Install MSVC 64-bit GStreamer runtime and development packages from the [GStreamer Official Site](https://gstreamer.freedesktop.org/).
+  - **macOS**: Install via Homebrew:
+    ```bash
+    brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly pkg-config
+    ```
+  - **Linux (Ubuntu/Debian)**: Install via APT:
+    ```bash
+    sudo apt update && sudo apt install -y build-essential pkg-config libasound2-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-ugly libwebkit2gtk-4.1-dev
+    ```
+
+### 2. Local Environment Setup
+
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/xtros/Muziso.git
+   cd Muziso
+   ```
+
+2. **Install Frontend Dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run Development Server**:
+   ```bash
+   npm run tauri dev
+   ```
+
+4. **Build Production Binaries**:
+   ```bash
+   npm run tauri build
+   ```
+
+---
+
+## 📂 Architecture Overview
+
+### 🔌 Portable GStreamer FFI
+Muziso initializes GStreamer directly upon app initialization. On Windows, the engine dynamically injects paths to portable GStreamer binaries into environment variables at runtime (`PKG_CONFIG_PATH` and `GSTREAMER_1_0_ROOT_X86_64`). On macOS and Linux, it binds to system GStreamer packages.
+
+### 🛡️ Secure Asset Protocol
+Tauri's `assetProtocol` is configured to scope local disk structures (`$HOME` and `$APPDATA`), allowing the client webview to securely load and stream locally stored media files, thumbnails, and avatars without origin policy issues.
 
 ---
 
 ## 🎯 Bug Hunter Reward Program
 
-Found a bug or an edge-case crash in **Muziso**? Help us make the app better and get rewarded! 
+Found a functional bug, stream error, or UI glitch in **Muziso**? Help improve the platform and get rewarded!
 
-We offer **rewards for valid, reproducible bug reports**.
+### How to Submit:
+1. Check existing issues on **[GitHub Issues](https://github.com/xtros/Muziso/issues)**.
+2. Open a new issue with:
+   - Reproduction steps.
+   - Operating system and Muziso version (e.g., Windows 11, Muziso v0.1.0).
+   - Relevant log outputs or screenshots.
+3. Confirmed bug reports earn rewards and contributor recognition!
 
-### 🛠️ How to Participate:
-1. **Discover a Bug**: Find any functional issue, audio engine crash, UI glitch, or stream resolution bug.
-2. **Report the Bug**: Create a detailed report on our [GitHub Issues](https://github.com/xtros/Muziso/issues) including:
-   - Clear steps to reproduce the bug.
-   - Operating System & Muziso version (e.g. Windows 11, Muziso v0.2.0).
-   - Relevant screenshots, video recordings, or error logs.
-3. **Get Verified & Rewarded**: Once our team verifies and confirms your bug report, we'll reward you for your contribution!
+---
 
-> [!TIP]
-> **High-Priority Bounties**: Critical rewards are given for audio engine crashes, stream resolution failures, or security vulnerabilities.
+## 📜 License
 
+Distributed under the MIT License. See [`LICENSE`](https://github.com/xtros/Muziso/blob/main/LICENSE) for more details.
