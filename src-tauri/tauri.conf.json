@@ -34,6 +34,7 @@
     "createUpdaterArtifacts": true,
     "resources": [
       "gstreamer/**/*",
+      "libs/*",
       "bin/yt-dlp.exe"
     ],
     "externalBin": [
