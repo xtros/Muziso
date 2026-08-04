@@ -49,8 +49,8 @@
     "windows": {
       "nsis": {
         "installerIcon": "icons/icon.ico",
-        "headerImage": "icons/Square150x150Logo.png",
-        "sidebarImage": "icons/Square150x150Logo.png",
+        "headerImage": "icons/nsis-header.png",
+        "sidebarImage": "icons/nsis-sidebar.png",
         "installerHooks": "./windows/hooks.nsh"
       }
     }
