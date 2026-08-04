@@ -107,3 +107,19 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      - name: Package Windows ZIP Release
+        if: matrix.platform == 'windows-latest'
+        shell: powershell
+        run: |
+          $ver = "${{ github.ref_name }}"
+          $zipPath = "src-tauri\target\release\bundle\Muziso_${ver}_windows_x64.zip"
+          Compress-Archive -Path "src-tauri\target\release\bundle\nsis\*.exe", "src-tauri\target\release\bundle\msi\*.msi" -DestinationPath $zipPath -Force
+
+      - name: Upload ZIP to GitHub Release
+        if: matrix.platform == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: src-tauri/target/release/bundle/Muziso_*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
