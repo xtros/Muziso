@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/xtros/Muziso/releases"><img src="https://img.shields.io/github/v/release/xtros/Muziso?color=ccff00&label=Release&style=for-the-badge" alt="Latest Release" /></a>
-  <a href="https://github.com/xtros/Muziso/blob/main/LICENSE"><img src="https://img.shields.io/github/license/xtros/Muziso?color=ccff00&label=License&style=for-the-badge" alt="License" /></a>
+  <a href="https://github.com/xtros/Muziso/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-ccff00?style=for-the-badge" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-181825?style=for-the-badge&logo=github" alt="Platforms" />
   <img src="https://img.shields.io/badge/Tauri-v2-FFC107?style=for-the-badge&logo=tauri&logoColor=black" alt="Tauri v2" />
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
