@@ -1008,7 +1008,7 @@ function App() {
         );
         if (gistRes.ok) {
           const latestData = await gistRes.json();
-          if (latestData && latestData.version && latestData.version !== "0.1.0") {
+          if (latestData && latestData.version && latestData.version !== "0.1.1") {
             setUpdateInfo({
               version: latestData.version,
               body: latestData.notes || `Muziso v${latestData.version} is available!`,
@@ -4324,7 +4324,7 @@ function App() {
                     <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-slate-900/60 flex flex-col justify-between h-36">
                       <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">App Version</p>
-                        <p className="text-3xl font-black text-white mt-2">v0.1.0</p>
+                        <p className="text-3xl font-black text-white mt-2">v0.1.1</p>
                       </div>
                       <p className="text-xs font-bold text-cyan-400 flex items-center gap-1">
                         <Check size={14} /> Latest Release Active

@@ -50,13 +50,16 @@ fn main() {
         let paths_to_check = vec![
             exe_dir.join("gstreamer"),
             exe_dir.join("resources").join("gstreamer"),
+            exe_dir.join("resources").join("libs"),
+            exe_dir.join("libs"),
             exe_dir.to_path_buf(), // Fallback to root
         ];
 
         let mut found_gst = false;
         for gst_base in paths_to_check {
-            let gst_bin = gst_base.join("bin");
-            let gst_plugins = gst_base.join("plugins");
+            let gst_bin = if gst_base.join("bin").exists() { gst_base.join("bin") } else { gst_base.clone() };
+            let gst_plugins = if gst_base.join("plugins").exists() { gst_base.join("plugins") } else { gst_base.clone() };
+
             
             let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
                 use std::io::Write;
