@@ -14,6 +14,7 @@ fn main() {
 
         const LOAD_LIBRARY_SEARCH_DEFAULT_DIRS: u32 = 0x00001000;
         const LOAD_LIBRARY_SEARCH_USER_DIRS: u32 = 0x00000400;
+        const LOAD_LIBRARY_SEARCH_APPLICATION_DIR: u32 = 0x00000200;
 
         // 1. Try to find bundled GStreamer resources first (Portable Mode)
         let exe_path = env::current_exe().unwrap_or_default();
@@ -47,118 +48,127 @@ fn main() {
             writeln!(f, "EXE Dir: {:?}", exe_dir)
         });
 
-        let paths_to_check = vec![
+        let bin_candidates = vec![
+            exe_dir.join("gstreamer").join("bin"),
+            exe_dir.join("resources").join("gstreamer").join("bin"),
             exe_dir.join("gstreamer"),
             exe_dir.join("resources").join("gstreamer"),
-            exe_dir.to_path_buf(), // Fallback to root
+            exe_dir.to_path_buf(),
         ];
 
-        let mut found_gst = false;
-        for gst_base in paths_to_check {
-            let gst_bin = if gst_base.join("bin").exists() { gst_base.join("bin") } else { gst_base.clone() };
-            let gst_plugins = if gst_base.join("plugins").exists() { gst_base.join("plugins") } else { gst_base.clone() };
-
-            
-            let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
-                use std::io::Write;
-                writeln!(f, "Checking for GStreamer bin at: {:?}", gst_bin)
-            });
-
-            if gst_bin.exists() {
-                // Advanced DLL resolution for recursive dependencies
-                let wide_path: Vec<u16> = gst_bin.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
-                unsafe {
-                    SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS);
-                    AddDllDirectory(wide_path.as_ptr());
-                }
-
-                // Update PATH for child processes (some plugins might spawn them)
-                if let Ok(current_path) = env::var("PATH") {
-                    let new_path = format!("{};{}", gst_bin.to_string_lossy(), current_path);
-                    env::set_var("PATH", new_path);
-                }
-
-                // Set GST_PLUGIN_PATH so GStreamer finds the bundled plugins
-                env::set_var("GST_PLUGIN_PATH", gst_plugins.to_string_lossy().to_string().replace("\\", "/"));
-
-                // Set GIO_EXTRA_MODULES for HTTPS/SSL support
-                let mut gio_modules = exe_dir.to_path_buf();
-                gio_modules.push("gstreamer");
-                gio_modules.push("gio");
-                gio_modules.push("modules");
-                env::set_var("GIO_EXTRA_MODULES", gio_modules.to_string_lossy().to_string().replace("\\", "/"));
-                
-                // CRITICAL FOR PORTABILITY: Disable forking for plugin scanning
-                env::set_var("GST_REGISTRY_FORK", "no");
-
-                // Localized registry to avoid permission/corruption issues in AppData
-                let mut gst_registry = exe_dir.to_path_buf();
-                gst_registry.push("gstreamer_registry.bin");
-                env::set_var("GST_REGISTRY", gst_registry.to_string_lossy().to_string().replace("\\", "/"));
-
-                // Disable Orc compilation optimizations to avoid illegal instruction crashes on older CPUs
-                env::set_var("ORC_CODE", "backup");
-
-                // Disable AVX/AVX2 instruction sets in OpenSSL to prevent illegal instruction crashes on older/virtualized CPUs
-                env::set_var("OPENSSL_ia32cap", "~0x20000000");
-
-                // Enable detailed GStreamer logging
-                let mut gst_debug_log = exe_dir.to_path_buf();
-                gst_debug_log.push("gstreamer_debug.log");
-                env::set_var("GST_DEBUG_FILE", gst_debug_log.to_string_lossy().to_string().replace("\\", "/"));
-                env::set_var("GST_DEBUG", "4");
-
-                let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
-                    use std::io::Write;
-                    writeln!(f, "SUCCESS: Injected GStreamer BIN path and set environment.")?;
-                    f.sync_all()
-                });
-
-                // Re-enable registry but use local file for stability
-                let mut gst_registry = exe_dir.to_path_buf();
-                gst_registry.push("gstreamer_registry.bin");
-                env::set_var("GST_REGISTRY", gst_registry.to_string_lossy().to_string().replace("\\", "/"));
-
-                // Initialize GStreamer directly now that we've verified it works
-                let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
-                    use std::io::Write;
-                    writeln!(f, "Initializing GStreamer engine...")?;
-                    f.sync_all()
-                });
-
-                if let Err(e) = gstreamer::init() {
-                    let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
-                        use std::io::Write;
-                        writeln!(f, "CRITICAL: gstreamer::init() failed: {}", e)?;
-                        f.sync_all()
-                    });
-                } else {
-                    let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
-                        use std::io::Write;
-                        writeln!(f, "SUCCESS: GStreamer engine initialized.")?;
-                        f.sync_all()
-                    });
-                }
-                found_gst = true;
+        let mut found_gst_bin: Option<std::path::PathBuf> = None;
+        for candidate in &bin_candidates {
+            if candidate.join("gstreamer-1.0-0.dll").exists() {
+                found_gst_bin = Some(candidate.clone());
                 break;
             }
         }
 
-        if !found_gst {
-            let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
-                use std::io::Write;
-                writeln!(f, "FAILED: No bundled GStreamer found.")
-            });
-            // 2. Fallback to system environment (Developer Mode)
-            if let Ok(gst_root) = env::var("GSTREAMER_1_0_ROOT_MSVC_X86_64") {
-                let gst_bin = format!("{}bin", gst_root);
-                if let Ok(current_path) = env::var("PATH") {
-                    if !current_path.contains(&gst_bin) {
-                        let new_path = format!("{};{}", gst_bin, current_path);
-                        env::set_var("PATH", new_path);
-                    }
+        let plugin_candidates = vec![
+            exe_dir.join("gstreamer").join("plugins"),
+            exe_dir.join("resources").join("gstreamer").join("plugins"),
+            exe_dir.join("plugins"),
+            exe_dir.join("gstreamer"),
+            exe_dir.join("resources").join("gstreamer"),
+            exe_dir.to_path_buf(),
+        ];
+
+        let mut found_gst_plugins: Option<std::path::PathBuf> = None;
+        for candidate in &plugin_candidates {
+            if candidate.exists() {
+                if candidate.file_name().and_then(|n| n.to_str()) == Some("plugins") ||
+                   std::fs::read_dir(candidate).map(|entries| entries.filter_map(Result::ok).any(|e| e.path().extension().and_then(|ext| ext.to_str()) == Some("dll"))).unwrap_or(false)
+                {
+                    found_gst_plugins = Some(candidate.clone());
+                    break;
                 }
             }
+        }
+
+        unsafe {
+            SetDefaultDllDirectories(
+                LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+                | LOAD_LIBRARY_SEARCH_USER_DIRS
+                | LOAD_LIBRARY_SEARCH_APPLICATION_DIR
+            );
+
+            let exe_wide: Vec<u16> = exe_dir.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
+            AddDllDirectory(exe_wide.as_ptr());
+
+            if let Some(ref gst_bin) = found_gst_bin {
+                if gst_bin != exe_dir {
+                    let bin_wide: Vec<u16> = gst_bin.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
+                    AddDllDirectory(bin_wide.as_ptr());
+                }
+            }
+        }
+
+        if let Ok(current_path) = env::var("PATH") {
+            let mut path_additions = vec![exe_dir.to_string_lossy().to_string()];
+            if let Some(ref gst_bin) = found_gst_bin {
+                if gst_bin != exe_dir {
+                    path_additions.push(gst_bin.to_string_lossy().to_string());
+                }
+            }
+            let new_path = format!("{};{}", path_additions.join(";"), current_path);
+            env::set_var("PATH", new_path);
+        }
+
+        if let Some(ref gst_plugins) = found_gst_plugins {
+            let plugins_str = gst_plugins.to_string_lossy().to_string().replace("\\", "/");
+            env::set_var("GST_PLUGIN_PATH", &plugins_str);
+            let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
+                use std::io::Write;
+                writeln!(f, "GST_PLUGIN_PATH set to: {}", plugins_str)
+            });
+        }
+
+        let gio_candidates = vec![
+            exe_dir.join("gstreamer").join("gio").join("modules"),
+            exe_dir.join("resources").join("gstreamer").join("gio").join("modules"),
+            exe_dir.join("gio").join("modules"),
+        ];
+        for gio_dir in gio_candidates {
+            if gio_dir.exists() {
+                env::set_var("GIO_EXTRA_MODULES", gio_dir.to_string_lossy().to_string().replace("\\", "/"));
+                break;
+            }
+        }
+
+        env::set_var("GST_REGISTRY_FORK", "no");
+
+        let mut gst_registry = exe_dir.to_path_buf();
+        gst_registry.push("gstreamer_registry.bin");
+        env::set_var("GST_REGISTRY", gst_registry.to_string_lossy().to_string().replace("\\", "/"));
+
+        env::set_var("ORC_CODE", "backup");
+
+        env::set_var("OPENSSL_ia32cap", "~0x20000000");
+
+        let mut gst_debug_log = exe_dir.to_path_buf();
+        gst_debug_log.push("gstreamer_debug.log");
+        env::set_var("GST_DEBUG_FILE", gst_debug_log.to_string_lossy().to_string().replace("\\", "/"));
+        env::set_var("GST_DEBUG", "4");
+
+        let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
+            use std::io::Write;
+            writeln!(f, "SUCCESS: Configured GStreamer paths: BIN={:?}, PLUGINS={:?}", found_gst_bin, found_gst_plugins)?;
+            writeln!(f, "Initializing GStreamer engine...")?;
+            f.sync_all()
+        });
+
+        if let Err(e) = gstreamer::init() {
+            let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
+                use std::io::Write;
+                writeln!(f, "CRITICAL: gstreamer::init() failed: {}", e)?;
+                f.sync_all()
+            });
+        } else {
+            let _ = std::fs::OpenOptions::new().append(true).open(&log_path).and_then(|mut f| {
+                use std::io::Write;
+                writeln!(f, "SUCCESS: GStreamer engine initialized.")?;
+                f.sync_all()
+            });
         }
     }
 
