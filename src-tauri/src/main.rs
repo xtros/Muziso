@@ -50,8 +50,6 @@ fn main() {
         let paths_to_check = vec![
             exe_dir.join("gstreamer"),
             exe_dir.join("resources").join("gstreamer"),
-            exe_dir.join("resources").join("libs"),
-            exe_dir.join("libs"),
             exe_dir.to_path_buf(), // Fallback to root
         ];
 
