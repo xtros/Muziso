@@ -51,6 +51,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: powershell
         run: |
+          choco install gstreamer-runtime -y --no-progress
           choco install gstreamer-devel -y --no-progress
           choco install pkgconfiglite -y --no-progress
           $pc = (Get-ChildItem -Path C:\ -Filter "glib-2.0.pc" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1)
@@ -60,6 +61,19 @@ jobs:
             echo "PKG_CONFIG_PATH=$pcDir" >> $env:GITHUB_ENV
             echo "GSTREAMER_1_0_ROOT_X86_64=$gstRoot" >> $env:GITHUB_ENV
             echo "$gstRoot\bin" >> $env:GITHUB_PATH
+
+            Write-Host "Syncing GStreamer binaries from $gstRoot to src-tauri\gstreamer..."
+            New-Item -ItemType Directory -Force -Path "src-tauri\gstreamer\bin"
+            New-Item -ItemType Directory -Force -Path "src-tauri\gstreamer\plugins"
+            New-Item -ItemType Directory -Force -Path "src-tauri\gstreamer\gio\modules"
+
+            Copy-Item -Path "$gstRoot\bin\*.dll" -Destination "src-tauri\gstreamer\bin\" -Force
+            if (Test-Path "$gstRoot\lib\gstreamer-1.0") {
+              Copy-Item -Path "$gstRoot\lib\gstreamer-1.0\*.dll" -Destination "src-tauri\gstreamer\plugins\" -Force
+            }
+            if (Test-Path "$gstRoot\lib\gio\modules") {
+              Copy-Item -Path "$gstRoot\lib\gio\modules\*.dll" -Destination "src-tauri\gstreamer\gio\modules\" -Force
+            }
           }
 
       - name: Install Linux dependencies

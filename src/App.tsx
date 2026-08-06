@@ -9,6 +9,7 @@ import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, LogicalSize, LogicalPosition } from "@tauri-apps/api/window";
 import { check } from "@tauri-apps/plugin-updater";
+import { getVersion } from "@tauri-apps/api/app";
 import logoImg from "./assets/logo.png";
 
 // Hook for mouse-drag horizontal scrolling on non-touch devices
@@ -828,9 +829,14 @@ const ConfirmDialog = ({
 function App() {
   const [externalTrack, setExternalTrack] = useState<any | null>(null);
   const [isMiniplayerMode, setIsMiniplayerMode] = useState(false);
+  const [appVersion, setAppVersion] = useState("0.1.4");
   const previousWindowSize = useRef<{ width: number, height: number, x: number, y: number } | null>(null);
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
   const mainScrollRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    getVersion().then(v => setAppVersion(v)).catch(() => {});
+  }, []);
 
   const toggleMiniplayerMode = async () => {
     try {
@@ -4324,7 +4330,7 @@ function App() {
                     <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-slate-900/60 flex flex-col justify-between h-36">
                       <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">App Version</p>
-                        <p className="text-3xl font-black text-white mt-2">v0.1.2</p>
+                        <p className="text-3xl font-black text-white mt-2">v{appVersion}</p>
                       </div>
                       <p className="text-xs font-bold text-cyan-400 flex items-center gap-1">
                         <Check size={14} /> Latest Release Active
